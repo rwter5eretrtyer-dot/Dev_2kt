@@ -1,0 +1,6 @@
+---
+# Four containers, as required by KT-2's sample exercise.
+container_count: 4
+default_container_name: docker
+default_container_image: "ubuntu:24.04"
+default_container_command: "sleep 1d"

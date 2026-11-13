@@ -1,0 +1,70 @@
+---
+- name: "KT-2: install Docker and start four Ubuntu containers"
+  hosts: docker_nodes
+  become: true
+  gather_facts: true
+
+  vars:
+    docker_apt_arch: >-
+      {{ {'x86_64': 'amd64', 'aarch64': 'arm64'}[ansible_architecture] }}
+
+  pre_tasks:
+    # Limit to the OS and CPU types supported by this teaching project.
+    - name: Verify that target host is a supported Ubuntu machine
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == 'Ubuntu'
+          - ansible_architecture in ['x86_64', 'aarch64']
+          - (container_count | int) >= 1
+          - (container_count | int) <= 10
+        fail_msg: "Use Ubuntu amd64/arm64; choose 1-10 containers."
+
+  tasks:
+    # Reuse idempotent tasks: packages, signed repository and Docker service.
+    - name: Install Docker with official APT repository
+      ansible.builtin.include_tasks: tasks/install_docker.yml
+
+    # Download the image once, rather than at each container creation.
+    - name: Download specified Ubuntu base image from Docker Hub
+      community.docker.docker_image:
+        name: "{{ default_container_image }}"
+        source: pull
+
+    # Create four numbered containers with the command from the source task.
+    # Isolation is tighter than the sample: no network or Linux capabilities.
+    - name: Create and start numbered Docker containers
+      community.docker.docker_container:
+        name: "{{ default_container_name }}{{ item }}"
+        image: "{{ default_container_image }}"
+        command: "{{ default_container_command }}"
+        state: started
+        restart_policy: unless-stopped
+        read_only: true
+        network_mode: none
+        cap_drop:
+          - ALL
+        security_opts:
+          - "no-new-privileges:true"
+        memory: 128M
+        pids_limit: 64
+      loop: "{{ range(1, (container_count | int) + 1) | list }}"
+      loop_control:
+        label: "{{ default_container_name }}{{ item }}"
+
+    # Check actual container state after Ansible has deployed them.
+    - name: Inspect newly created containers
+      community.docker.docker_container_info:
+        name: "{{ default_container_name }}{{ item }}"
+      loop: "{{ range(1, (container_count | int) + 1) | list }}"
+      register: kt2_container_facts
+
+    - name: Assert that all required containers are running
+      ansible.builtin.assert:
+        that:
+          - item.exists
+          - item.container.State.Running | bool
+        success_msg: "{{ default_container_name }}{{ item.item }} is running"
+        fail_msg: "{{ default_container_name }}{{ item.item }} is not running"
+      loop: "{{ kt2_container_facts.results }}"
+      loop_control:
+        label: "{{ default_container_name }}{{ item.item }}"

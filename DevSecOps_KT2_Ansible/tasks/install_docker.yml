@@ -1,0 +1,58 @@
+---
+# Shared Docker installation tasks for both KT-2 playbooks (Ubuntu).
+- name: Install aptitude and packages required by Docker and Python SDK
+  ansible.builtin.apt:
+    name:
+      - aptitude
+      - ca-certificates
+      - curl
+      - python3-docker
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create protected APT keyring directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download Docker's official GPG verification key over HTTPS
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+    validate_certs: true
+
+- name: Configure Docker's signed APT repository (deb822 format)
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/docker.sources
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      Types: deb
+      URIs: https://download.docker.com/linux/ubuntu
+      Suites: {{ ansible_distribution_release }}
+      Components: stable
+      Architectures: {{ docker_apt_arch }}
+      Signed-By: /etc/apt/keyrings/docker.asc
+
+- name: Install Docker Engine, CLI and Compose from official repository
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Enable and start Docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
