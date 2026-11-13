@@ -1,0 +1,48 @@
+@startuml
+class Customer {
+  +id: int
+  +name: String
+  +email: String
+  +placeOrder()
+}
+class Product {
+  +id: int
+  +title: String
+  +price: decimal
+  +stock: int
+  +checkAvailability()
+}
+class Cart {
+  +id: int
+  +addProduct()
+  +removeProduct()
+  +getTotal()
+}
+class CartItem {
+  +quantity: int
+  +getSubtotal()
+}
+class Order {
+  +id: int
+  +status: String
+  +total: decimal
+  +confirm()
+}
+class OrderItem {
+  +quantity: int
+  +unitPrice: decimal
+}
+class Payment {
+  +id: int
+  +amount: decimal
+  +status: String
+  +pay()
+}
+Customer "1" -- "1" Cart
+Customer "1" -- "0..*" Order
+Cart "1" *-- "0..*" CartItem
+CartItem "*" --> "1" Product
+Order "1" *-- "1..*" OrderItem
+OrderItem "*" --> "1" Product
+Order "1" -- "0..1" Payment
+@enduml

@@ -1,0 +1,48 @@
+classDiagram
+  direction LR
+  class Customer {
+    +int id
+    +String name
+    +String email
+    +placeOrder()
+  }
+  class Product {
+    +int id
+    +String title
+    +decimal price
+    +int stock
+    +checkAvailability()
+  }
+  class Cart {
+    +int id
+    +addProduct()
+    +removeProduct()
+    +getTotal()
+  }
+  class CartItem {
+    +int quantity
+    +getSubtotal()
+  }
+  class Order {
+    +int id
+    +String status
+    +decimal total
+    +confirm()
+  }
+  class OrderItem {
+    +int quantity
+    +decimal unitPrice
+  }
+  class Payment {
+    +int id
+    +decimal amount
+    +String status
+    +pay()
+  }
+  Customer "1" --> "1" Cart : использует
+  Customer "1" --> "0..*" Order : оформляет
+  Cart "1" *-- "0..*" CartItem : содержит
+  CartItem "*" --> "1" Product : товар
+  Order "1" *-- "1..*" OrderItem : содержит
+  OrderItem "*" --> "1" Product : товар
+  Order "1" --> "0..1" Payment : оплачивается

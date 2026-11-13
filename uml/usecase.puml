@@ -1,0 +1,22 @@
+@startuml
+left to right direction
+actor "Покупатель" as Buyer
+actor "Администратор" as Admin
+rectangle "Интернет-магазин" {
+  usecase "Просмотреть каталог" as U1
+  usecase "Добавить товар в корзину" as U2
+  usecase "Оформить заказ" as U3
+  usecase "Оплатить заказ" as U4
+  usecase "Проверить статус" as U5
+  usecase "Управлять товарами" as U6
+  usecase "Обработать заказ" as U7
+}
+Buyer --> U1
+Buyer --> U2
+Buyer --> U3
+Buyer --> U4
+Buyer --> U5
+Admin --> U6
+Admin --> U7
+U3 .> U4 : <<include>>
+@enduml

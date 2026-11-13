@@ -1,0 +1,26 @@
+sequenceDiagram
+  actor Buyer as Покупатель
+  participant UI as Веб-приложение
+  participant Orders as Сервис заказов
+  participant DB as База данных
+  participant Pay as Платежный сервис
+  Buyer->>UI: Оформить корзину
+  UI->>Orders: createOrder(items)
+  Orders->>DB: проверить остатки
+  DB-->>Orders: сведения о наличии
+  alt Товары в наличии
+    Orders->>DB: сохранить заказ
+    DB-->>Orders: orderId
+    Orders->>Pay: charge(amount)
+    Pay-->>Orders: результат оплаты
+    alt Оплата успешна
+      Orders->>DB: статус = PAID
+      Orders-->>UI: заказ подтвержден
+    else Ошибка оплаты
+      Orders->>DB: статус = PAYMENT_FAILED
+      Orders-->>UI: ошибка оплаты
+    end
+  else Товаров нет в наличии
+    Orders-->>UI: заказ не оформлен
+  end
+  UI-->>Buyer: показать результат

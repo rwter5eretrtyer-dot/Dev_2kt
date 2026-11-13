@@ -1,9 +1,0 @@
----
-# To prevent accidental installation, explicitly enable in command line.
-onlyoffice_install_confirm: false
-onlyoffice_listen_port: 8080
-onlyoffice_installer_dir: /opt/devsecops-kt2/onlyoffice
-# Official ONLYOFFICE Docker installer, invoked directly without a menu.
-onlyoffice_installer_url: https://download.onlyoffice.com/install/install.sh
-# Optional: set the verified SHA256 of a reviewed installer for strict pinning.
-onlyoffice_installer_sha256: ""

@@ -1,0 +1,27 @@
+@startuml
+actor "Покупатель" as Buyer
+boundary "Веб-приложение" as UI
+control "Сервис заказов" as Orders
+database "База данных" as DB
+participant "Платежный сервис" as Pay
+Buyer -> UI : Оформить корзину
+UI -> Orders : createOrder(items)
+Orders -> DB : Проверить остатки
+DB --> Orders : Сведения о наличии
+alt Товары в наличии
+  Orders -> DB : Сохранить заказ
+  DB --> Orders : orderId
+  Orders -> Pay : charge(amount)
+  Pay --> Orders : Результат оплаты
+  alt Успешно
+    Orders -> DB : status = PAID
+    Orders --> UI : Заказ подтвержден
+  else Ошибка
+    Orders -> DB : status = PAYMENT_FAILED
+    Orders --> UI : Ошибка оплаты
+  end
+else Нет товара
+  Orders --> UI : Заказ не оформлен
+end
+UI --> Buyer : Показать результат
+@enduml
